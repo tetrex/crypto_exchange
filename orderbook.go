@@ -60,7 +60,7 @@ func (l *Limit) DeleteOrder(o *Order) {
 
 type Limit struct {
 	Price       float64
-	Orders      []*Order
+	Orders      Orders
 	TotalVolume float64
 }
 
