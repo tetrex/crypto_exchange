@@ -7,8 +7,8 @@ import (
 )
 
 type Match struct {
-	Ask        *Order
-	Bid        *Order
+	ask        *Order
+	bid        *Order
 	SizeFilled float64
 	Price      float64
 }
@@ -74,7 +74,7 @@ func (a ByBestAsk) Less(i, j int) bool { return a.Limits[i].Price < a.Limits[j].
 type ByBestBid struct{ Limits }
 
 func (b ByBestBid) Len() int           { return len(b.Limits) }
-func (b ByBestBid) Swbp(i, j int)      { b.Limits[i], b.Limits[j] = b.Limits[j], b.Limits[i] }
+func (b ByBestBid) Swap(i, j int)      { b.Limits[i], b.Limits[j] = b.Limits[j], b.Limits[i] }
 func (b ByBestBid) Less(i, j int) bool { return b.Limits[i].Price > b.Limits[j].Price }
 
 func (l *Limit) String() string {
@@ -89,8 +89,8 @@ func NewLimit(price float64) *Limit {
 }
 
 type OrderBook struct {
-	Asks []*Limit
-	Bids []*Limit
+	asks []*Limit
+	bids []*Limit
 
 	AskLimits map[float64]*Limit
 	BidLimits map[float64]*Limit
@@ -98,28 +98,16 @@ type OrderBook struct {
 
 func NewOrderBook() *OrderBook {
 	return &OrderBook{
-		Asks:      []*Limit{},
-		Bids:      []*Limit{},
+		asks:      []*Limit{},
+		bids:      []*Limit{},
 		AskLimits: make(map[float64]*Limit),
 		BidLimits: make(map[float64]*Limit),
 	}
 
 }
 
-func (ob *OrderBook) PlaceOrder(price float64, o *Order) []Match {
-	// 1. Try to match the orders
-	// matching logic
+func (ob *OrderBook) PalaceLimitOrder(price float64, o *Order) {
 
-	// 2. add the rest of the order to the books
-
-	if o.Size > 0.0 {
-		ob.add(price, o)
-	}
-
-	return []Match{}
-}
-
-func (ob *OrderBook) add(price float64, o *Order) {
 	var limit *Limit
 
 	if o.Bid {
@@ -132,12 +120,37 @@ func (ob *OrderBook) add(price float64, o *Order) {
 		limit = NewLimit(price)
 		limit.AddOrder(o)
 		if o.Bid {
-			ob.Bids = append(ob.Bids, limit)
+			ob.bids = append(ob.bids, limit)
 			ob.BidLimits[price] = limit
 		} else {
 			ob.AskLimits[price] = limit
-			ob.Asks = append(ob.Asks, limit)
+			ob.asks = append(ob.asks, limit)
 		}
 	}
-
 }
+
+func (ob *OrderBook) Asks() []*Limit {
+	sort.Sort(ByBestAsk{ob.asks})
+	return ob.asks
+}
+func (ob *OrderBook) Bids() []*Limit {
+	sort.Sort(ByBestBid{ob.bids})
+	return ob.bids
+}
+
+// func (ob *OrderBook) PlaceOrder(price float64, o *Order) []Match {
+// 	// 1. Try to match the orders
+// 	// matching logic
+
+// 	// 2. add the rest of the order to the books
+
+// 	if o.Size > 0.0 {
+// 		ob.add(price, o)
+// 	}
+
+// 	return []Match{}
+// }
+
+// func (ob *OrderBook) add(price float64, o *Order) {
+
+// }

@@ -2,8 +2,15 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
+
+func assert(t *testing.T, a, b any) {
+	if !reflect.DeepEqual(a, b) {
+		t.Errorf("%+v != %+v", a, b)
+	}
+}
 
 func TestLimit(t *testing.T) {
 	l := NewLimit(10_000)
@@ -20,19 +27,13 @@ func TestLimit(t *testing.T) {
 	fmt.Println(l)
 }
 
-func TestOrderBook(t *testing.T) {
+func TestPlaceLimitOrder(t *testing.T) {
 	ob := NewOrderBook()
 
-	buyOrderA := NewOrder(true, 10)
-	buyOrderB := NewOrder(true, 2000)
+	sellOrderA := NewOrder(false, 10)
+	sellOrderB := NewOrder(false, 5)
+	ob.PalaceLimitOrder(10_000, sellOrderA)
+	ob.PalaceLimitOrder(9_000, sellOrderB)
 
-	ob.PlaceOrder(18_000, buyOrderA)
-	ob.PlaceOrder(19_000, buyOrderB)
-
-	fmt.Printf("%+v", ob)
-
-	for i := 0; i < len(ob.Bids); i++ {
-		fmt.Printf("Bids : %+v", ob.Bids[i])
-	}
-
+	assert(t, len(ob.Asks), 2)
 }
