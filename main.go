@@ -14,6 +14,7 @@ func main() {
 
 	e.GET("/book/:market", ex.handleGetBook)
 	e.POST("/order", ex.handlePlaceOrder)
+	e.GET("/order/:id", ex.handleCancleOrder)
 
 	e.Start(":3000")
 }
@@ -80,6 +81,7 @@ func (ex *Exchange) handlePlaceOrder(c echo.Context) error {
 }
 
 type Order struct {
+	ID        int64
 	Price     float64
 	Size      float64
 	Bid       bool
@@ -110,6 +112,7 @@ func (ex *Exchange) handleGetBook(c echo.Context) error {
 	for _, limits := range ob.Asks() {
 		for _, orders := range limits.Orders {
 			o := Order{
+				ID:        orders.ID,
 				Price:     orders.Limit.Price,
 				Size:      orders.Size,
 				Bid:       orders.Bid,
@@ -122,6 +125,7 @@ func (ex *Exchange) handleGetBook(c echo.Context) error {
 	for _, limits := range ob.Bids() {
 		for _, orders := range limits.Orders {
 			o := Order{
+				ID:        orders.ID,
 				Price:     orders.Limit.Price,
 				Size:      orders.Size,
 				Bid:       orders.Bid,
@@ -132,4 +136,9 @@ func (ex *Exchange) handleGetBook(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, orderbookData)
+}
+
+func (ex *Exchange) handleCancleOrder(c echo.Context) error {
+
+	return nil
 }
