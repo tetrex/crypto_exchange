@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github/tetrex/crypto_exchange/orderbook"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -14,7 +15,7 @@ func main() {
 
 	e.GET("/book/:market", ex.handleGetBook)
 	e.POST("/order", ex.handlePlaceOrder)
-	e.GET("/order/:id", ex.handleCancleOrder)
+	e.DELETE("/order/:id", ex.handleCancleOrder)
 
 	e.Start(":3000")
 }
@@ -139,6 +140,37 @@ func (ex *Exchange) handleGetBook(c echo.Context) error {
 }
 
 func (ex *Exchange) handleCancleOrder(c echo.Context) error {
+	idStr := c.Param("id")
+	id, _ := strconv.Atoi(idStr)
+
+	ob := ex.orderbooks[MarketETH]
+	orderCanceled := false
+
+	for _, limit := range ob.Asks() {
+		for _, order := range limit.Orders {
+			if order.ID == int64(id) {
+				ob.CancelOrder(order)
+				orderCanceled = true
+			}
+
+			if orderCanceled {
+				return c.JSON(200, map[string]any{"msg": "order canceled"})
+			}
+		}
+	}
+
+	for _, limit := range ob.Bids() {
+		for _, order := range limit.Orders {
+			if order.ID == int64(id) {
+				ob.CancelOrder(order)
+				orderCanceled = true
+			}
+
+			if orderCanceled {
+				return c.JSON(200, map[string]any{"msg": "order canceled"})
+			}
+		}
+	}
 
 	return nil
 }
